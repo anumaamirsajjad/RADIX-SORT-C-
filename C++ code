@@ -1,0 +1,232 @@
+
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+// Template class for a singly linked list node
+template <typename T>
+class node {
+public:
+    T data;          // Data stored in the node
+    node* next;      // Pointer to the next node
+
+    // Constructor to initialize the node with data
+    node(T a) {
+        data = a;
+        next = nullptr; // Initialize the next pointer to null
+    }
+};
+
+// Template class for a Queue using linked list nodes
+template <typename T>
+class Queue {
+private:
+    node<T>* front;  // Pointer to the front of the queue
+    node<T>* rear;   // Pointer to the rear of the queue
+    int size;        // Size of the queue
+
+public:
+    // Constructor to initialize an empty queue
+    Queue() {
+        front = nullptr; // Initialize front to null
+        rear = nullptr;  // Initialize rear to null
+        size = 0;        // Set size to 0
+    }
+
+    // Enqueue operation to add an element to the queue
+    void enqueue(T a) {
+        node<T>* add = new node<T>(a); // Create a new node
+        if (rear) {
+            rear->next = add; // Link the new node to the end of the queue
+        }
+        rear = add; // Update rear to point to the new node
+        if (!front) {
+            front = rear; // If the queue was empty, set front to the new node
+        }
+        size++; // Increment the size of the queue
+    }
+
+    // Dequeue operation to remove and return an element from the queue
+    T dequeue() {
+        if (isEmpty()) {
+            return T(); // Return default value of T if the queue is empty
+        }
+        node<T>* temp = front; // Temporarily store the front node
+        T value = front->data;  // Store the data to return
+        front = front->next;    // Move front to the next node
+        delete temp;            // Free memory of the old front
+        size--;                 // Decrement the size of the queue
+        if (isEmpty()) {
+            rear = nullptr; // Reset rear if the queue is now empty
+        }
+        return value; // Return the dequeued value
+    }
+
+    // Check if the queue is empty
+    bool isEmpty() const {
+        return size == 0; // Return true if size is 0
+    }
+
+    // Function to display the contents of the queue
+    void display() const {
+        node<T>* temp = front; // Start from the front
+        while (temp) {
+            cout << temp->data << " "; // Print each element
+            temp = temp->next; // Move to the next node
+        }
+        cout << endl; // New line after displaying the queue
+    }
+
+    // Get the value at the front of the queue without removing it
+    T getfront() const {
+        if (isEmpty()) {
+            return T(); // Return default value of T if the queue is empty
+        }
+        return front->data; // Return the front value
+    }
+
+    // Destructor to free memory when queue is destroyed
+    ~Queue() {
+        while (!isEmpty()) {
+            dequeue(); // Dequeue all elements to free memory
+        }
+    }
+};
+
+// Function to get the last digit of a number at a given position
+int getlastdigit(int num, int pos) {
+    return (num / pos) % 10; // Return the last digit at the specified position
+}
+
+// Function to sort integers using a bucket (radix) sort approach
+void sortint(Queue<int>& q) {
+    int k = 0; // Maximum number of digits in a number
+    int m = 0; // Total number of numbers to sort
+
+    cout << "Enter the maximum number of digits in a number: " << endl;
+    cin >> k; // Input the maximum number of digits
+    cout << "Enter the total number of numbers you will be giving: " << endl;
+    cin >> m; // Input the total number of numbers
+
+    int maxnum = pow(10, k); // Calculate the maximum number value based on digit count
+    int* arr = new int[m]; // Create an array to hold the numbers
+
+    // Input numbers and validate their size
+    for (int i = 0; i < m; i++) {
+        cout << "Enter the number: " << endl;
+        cin >> arr[i];
+        if (arr[i] < 0) {
+            arr[i] = arr[i] * -1;
+        }
+        while (arr[i] >= maxnum) { // Ensure the number does not exceed the maximum
+            cout << "The number you entered is greater than the maximum number of digits you entered. Please enter a number with " << k << " digits: " << endl;
+            cin >> arr[i]; // Re-enter if invalid
+        }
+    }
+
+    Queue<int> queues[10]; // Array of queues for each digit (0-9)
+
+    int n = 1; // Start with the least significant digit
+    for (int j = 0; j < k; j++) { // Iterate for each digit
+        for (int i = 0; i < m; i++) {
+            int single = getlastdigit(arr[i], n); // Get the current digit
+            queues[single].enqueue(arr[i]); // Enqueue the number based on its current digit
+        }
+
+        int index = 0; // Index to place sorted numbers back into the array
+        for (int i = 0; i < 10; i++) { // Move numbers back from queues to array
+            while (!queues[i].isEmpty()) {
+                arr[index++] = queues[i].dequeue(); // Dequeue and place in array
+            }
+        }
+        n *= 10; // Move to the next digit
+    }
+
+    // Output the sorted array
+    cout << "Sorted array: " << endl;
+    for (int i = 0; i < m; i++) {
+        cout << arr[i] << " "; // Print each sorted number
+    }
+    cout << endl;
+
+    delete[] arr; // Free the allocated array
+}
+
+// Function to get the character at a specific position in a string
+char getlastchar(string str, int pos) {
+    int index = str.length() - pos - 1; // Calculate the index for the character
+    return str[pos - 1]; // Return the character at the specified position
+}
+
+// Function to sort strings using a bucket sort approach
+void sortstring(Queue<string>& q) {
+    int k = 0; // Maximum number of characters in a string
+    int m = 0; // Total number of strings to sort
+
+    cout << "Enter the maximum number of alphabets in a string: " << endl;
+    cin >> k; // Input the maximum number of characters
+    cout << "Enter the total number of strings you will be giving: " << endl;
+    cin >> m; // Input the total number of strings
+    string* arr = new string[m]; // Create an array to hold the strings
+
+    // Input strings and validate their length
+    for (int i = 0; i < m; i++) {
+        cout << "Enter the string: " << endl;
+        cin >> arr[i];
+
+        // Convert uppercase letters to lowercase
+        for (int j = 0; j < arr[i].length(); j++) {
+            if (arr[i][j] >= 'A' && arr[i][j] <= 'Z') {
+                arr[i][j] = arr[i][j] + 32; // Convert to lowercase
+            }
+        }
+
+        // Validate string length
+        while (arr[i].length() > k) { // Ensure the string does not exceed maximum length
+            cout << "The string you entered is greater than the maximum number of alphabets you entered. Please enter a string with " << k << " alphabets: " << endl;
+            cin >> arr[i]; // Re-enter if invalid
+        }
+
+        // Pad shorter strings with spaces
+        if (arr[i].length() < k) {
+            int diff = k - arr[i].length(); // Calculate the difference
+            arr[i] += string(diff, ' '); // Add spaces to the string
+        }
+    }
+
+    Queue<string> queues[130]; // Array of queues for each ASCII character
+
+    int n = k; // Start from the last character
+    for (int j = 0; j < k; j++) { // Iterate for each character position
+        for (int i = 0; i < m; i++) {
+            int single = getlastchar(arr[i], n); // Get the current character
+            queues[single].enqueue(arr[i]); // Enqueue the string based on its current character
+        }
+
+        int index = 0; // Index to place sorted strings back into the array
+        for (int i = 0; i < 127; i++) { // Move strings back from queues to array
+            while (!queues[i].isEmpty()) {
+                arr[index++] = queues[i].dequeue(); // Dequeue and place in array
+            }
+        }
+        n--; // Move to the next character
+    }
+
+    // Output the sorted array
+    cout << "The sorted array is: " << endl;
+    for (int i = 0; i < m; i++) {
+        cout << arr[i] << " "; // Print each sorted string
+    }
+
+    delete[] arr; // Free the allocated array
+}
+
+// Main function to execute the sorting operations
+int main() {
+    Queue<int> q; // Create a queue for integers
+    sortint(q); // Sort integers
+
+    Queue<string> q1; // Create a queue for strings
+    sortstring(q1); // Sort strings
+    return 0; // End of the program
+}
